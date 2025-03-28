@@ -5,6 +5,18 @@
       "name": "John Doe",
       "email": "jogn@example.com",
       "password": "$2b$10$GvArV8qqrnRXMbsiX.9j7eZ182Guugq9X/s3BfGfCkidlD2n68JWW"
+    },
+    {
+      "id": 1741686335053,
+      "name": "Radha",
+      "email": "radha@example",
+      "password": "$2b$10$nx3fEPMhQgzT/Fu2hDRG8OnCahkgAjkLfvcm1/li3yzx6IkbWzl3C"
+    },
+    {
+      "id": 1741770103969,
+      "name": "Samuel",
+      "email": "sam@example.com",
+      "password": "$2b$10$p5l3HZ1ZefolVV71S55xSuY0.MeCHHAMksIA0reAfbCE2LwKd1AhK"
     }
   ]
 }
