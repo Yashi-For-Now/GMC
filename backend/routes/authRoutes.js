@@ -1,59 +1,109 @@
-import fs from "fs";
-import path from "path";
 import express from "express";
 import bcrypt from "bcryptjs";
-// import jwt from "jsonwebtoken";
-// import User from "../models/User.js";
+import pool from "../database/db.js";
+import jwt from "jsonwebtoken";
 
 const router = express.Router();
-const dbPath = path.join(process.cwd(), "database.json");
-// const JWT_SECRET = process.env.JWT_SECRET;
-
-// Read database from json file
-
-const readDB = () => {
-  try {
-    return JSON.parse(fs.readFileSync(dbPath, "utf8"));
-  } catch (error) {
-    return { users: [] };
-  }
-};
-
-//Write data in json file
-const writeDB = (data) => {
-  fs.writeFileSync(dbPath, JSON.stringify(data, null, 2));
-};
-
+const JWT_SECRET = process.env.JWT_SECRET;
 //Signup Route
 router.post("/signup", async (req, res) => {
   const { name, email, password } = req.body;
-  let db = readDB();
 
-  if (db.users.find((user) => user.email === email)) {
-    return res.status(400).json({ message: "User alrerady exists" });
+  try {
+    const [existingUsers] = await pool.query(
+      "select* from users where email=?",
+      [email]
+    );
+    if (existingUsers.length > 0) {
+      return res.status(400).json({ message: "USer already exists" });
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    await pool.query(
+      "insert into users (name, email, password) values (?, ?, ?)",
+      [name, email, hashedPassword]
+    );
+
+    res.json({ message: "User successfully registered" });
+  } catch (err) {
+    console.error("Signup error: ", err);
+    res.status(500).json({ message: "Internal server error" });
   }
-
-  const hashedPassword = await bcrypt.hash(password, 10);
-  db.users.push({ id: Date.now(), name, email, password: hashedPassword });
-
-  writeDB(db);
-  res.json({ message: "User registered successfully" });
 });
 
 //Login Route
 router.post("/login", async (req, res) => {
   const { email, password } = req.body;
-  let db = readDB();
 
-  const user = db.users.find((user) => user.email === email);
-  if (!user || !(await bcrypt.compare(password, user.password))) {
-    return res.status(400).json({ message: "Invalid credentials" });
+  try {
+    const [rows] = await pool.query("select * from users where email=?", [
+      email,
+    ]);
+    // console.log("User found in database: ", rows);
+    if (rows.length === 0) {
+      console.log("User not found");
+      return res.status(400).json({ message: "Invalid credentials" });
+    }
+    const user = rows[0];
+
+    const isMatch = await bcrypt.compare(password, user.password);
+    // console.log("Password match status: ", isMatch);
+    if (!isMatch) {
+      // console.log("Password wrong");
+      return res.status(400).json({ message: "Invalid credentials" });
+    }
+
+    const token = jwt.sign(
+      { id: user.id, name: user.name, email: user.email },
+      JWT_SECRET,
+      { expiresIn: "1h" }
+    );
+    // console.log(token);
+
+    res.json({
+      message: "Login successful",
+      token,
+      user: { id: user.id, name: user.name, email: user.email },
+    });
+  } catch (err) {
+    console.error("Login error: ", err);
+    res.status(500).json({ message: "Internal server error" });
   }
-
-  res.json({
-    message: "Login successful",
-    user: { id: user.id, name: user.name, email: user.email },
-  });
 });
 
+const verifyToken = (req, res, next) => {
+  const authHeader = req.header("Authorization");
+  if (!authHeader || !authHeader.startsWith("Bearer")) {
+    return res
+      .status(401)
+      .json({ message: "Acees denied. No token provided." });
+  }
+  //
+  const token = authHeader.split(" ")[1];
+
+  try {
+    const decoded = jwt.verify(token, JWT_SECRET);
+    req.user = decoded;
+    next();
+  } catch (err) {
+    res.status(401).json({ message: "Invalid token" });
+  }
+};
+
+router.get("/me", verifyToken, async (req, res) => {
+  try {
+    const [rows] = await pool.query(
+      "select id, name, email from users where id=? ",
+      [req.user.id]
+    );
+    if (rows.length === 0) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    res.json({ user: rows[0] });
+  } catch (error) {
+    console.log("Error fetching user: ", err);
+    res.status(500).json({ message: "Internal server error" });
+  }
+});
 export default router;

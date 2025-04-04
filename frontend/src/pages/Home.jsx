@@ -1,112 +1,123 @@
 import React from "react";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import {
-  Button,
-  Container,
-  Grid2,
-  TextField,
-  Typography,
-  styled,
-} from "@mui/material";
+import { Button, Container, TextField, styled } from "@mui/material";
+import axios from "axios";
 import { v4 as uuidV4 } from "uuid";
 
-const Wrapper = styled(Container)(({ theme }) => {
-  textAlign: "center";
-  marginTop: "50px";
+const Wrapper = styled(Container)({
+  display: "flex",
+  flexDirection: "column",
+  justifyContent: "center",
+  alignItems: "center",
+  height: "100vh",
+  backgroundColor: "#429E9D", // Black background
+  color: "#fff", // White text
+  textAlign: "center",
 });
 
-const Heading1 = styled(Typography)(({ theme }) => {
-  variant: "h4";
+const ContentBox = styled("div")({
+  width: "400px",
+  padding: "30px",
+  borderRadius: "12px",
+  backgroundColor: "#fff",
+  color: "#333",
+  textAlign: "center",
+  boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.1)",
+});
+const StyledButton = styled(Button)({
+  padding: "12px",
+  fontSize: "16px",
+  fontWeight: "bold",
+  width: "100%",
+  borderRadius: "8px",
+  backgroundColor: "#2C786C",
+  color: "#fff",
+  transition: "background 0.3s",
+  "&:hover": {
+    backgroundColor: "#1D5C4A",
+  },
+  marginTop: "15px",
 });
 
-const Heading2 = styled(Typography)(({ theme }) => {
-  variant: "h6";
+const LogoutButton = styled(Button)({
+  marginTop: "30px",
+  backgroundColor: "#C029B8",
+  color: "#fff",
+  fontWeight: "bold",
+  "&:hover": {
+    backgroundColor: "#A93226",
+  },
 });
 
-const Heading5 = styled(Typography)(({ theme }) => {
-  variant: "h5";
+const StyledTextField = styled(TextField)({
+  width: "100%",
+  marginTop: "15px",
+  "& .MuiOutlinedInput-root": {
+    borderRadius: "8px",
+  },
 });
-
-const LogoutButton = styled(Button)(({ theme }) => {
-  variant: "contained";
-  color: "secondary";
-  marginBottom: "20px";
-});
-
-const CreateButton = styled(Button)(({ theme }) => {
-  variant: "contained";
-  color: "primary";
-  marginBottom: "20px";
-});
-
-const JoinButton = styled(Button)(({ theme }) => {
-  variant: "contained";
-  color: "secondary";
-  // marginBottom: "20px";
-});
-
-const Container1 = styled(Grid2)(({ theme }) => {
-  spacing: "2";
-  justifyContent: "center";
-  marginTop: "20px";
-});
-
-const Container2 = styled(Grid2)(({ theme }) => {
-  xs: "2";
-  md: "5";
-});
-
-const Home = ({ user, handleLogout }) => {
-  // const [user, setUser] = useState(""); // should not be null search why we wrote null pehle
+const Home = () => {
+  const [user, setUser] = useState(null); // should not be null search why we wrote null pehle
   const [roomId, setRoomId] = useState("");
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (!user) {
+    const token = localStorage.getItem("token");
+    if (!token) {
       navigate("/login");
+      return;
     }
-  }, [user, navigate]);
-  // useEffect(() => {
-  //   const storedUser = localStorage.getItem("user");
-  //   if (storedUser) {
-  //     setUser(JSON.parse(storedUser));
-  //   } else {
-  //     navigate("/login");
-  //   }
-  // }, []);
+    // console.log("Token from localStorage:", token);
+    axios
+      .get("http://localhost:5000/api/auth/me", {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      .then((response) => {
+        // console.log(response.data.user);
+        setUser(response.data.user);
+      })
+      .catch((err) => {
+        console.error("Auth error:", err);
+        localStorage.removeItem("token");
+        navigate("/login");
+      });
+  }, [navigate, user]);
 
   const createRoom = () => {
     const newRoomId = uuidV4();
-    navigate("/meetingroom/${roomId}");
+    navigate(`/MeetingRoom/${newRoomId}`);
   };
 
   const joinRoom = () => {
     if (roomId.trim()) {
-      navigate("/meetingroom/${roomId}");
+      navigate(`/FrontPage/${roomId}`);
     }
   };
 
-  // const handleLogout = () => {
-  //   localStorage.removeItem("user");
-  //   navigate("/login");
-  // };
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    navigate("/login");
+    setUser(null);
+  };
+
   return (
     <Wrapper>
-      <Heading1>Welcome, {user?.name || "User"}!</Heading1>
-      <LogoutButton onClick={handleLogout}>Logout</LogoutButton>
-      <Heading5>Say Hello</Heading5>
-      <CreateButton onClick={createRoom}>Create Room</CreateButton>
-      <br />
+      <ContentBox>
+        <h2>Welcome to Say Hello, {user?.name || "User"}!</h2>
+        <StyledButton onClick={createRoom}>Create Room</StyledButton>
+        <br />
 
-      <TextField
-        label="Enter Room ID"
-        variant="outlined"
-        value={roomId}
-        onChange={(e) => setRoomId(e.target.value)}
-        style={{ marginRight: "10px" }}
-      />
-      <JoinButton onClick={joinRoom}>Join Room</JoinButton>
+        <StyledTextField
+          label="Enter Room ID"
+          variant="outlined"
+          value={roomId}
+          onChange={(e) => setRoomId(e.target.value)}
+          style={{ marginRight: "10px" }}
+        />
+        <StyledButton onClick={joinRoom}>Join Room</StyledButton>
+        <LogoutButton onClick={handleLogout}>Logout</LogoutButton>
+      </ContentBox>
     </Wrapper>
   );
 };

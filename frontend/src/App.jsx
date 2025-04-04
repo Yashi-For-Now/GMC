@@ -41,9 +41,9 @@ const App = () => {
         />
         <Route path="/signup" element={<Signup setUser={setUser} />} />
         <Route path="/login" element={<Login setUser={setUser} />} />
-        <Route path="/FrontPage" element={<FrontPage />} />
+        <Route path="/FrontPage/:roomId" element={<FrontPage />} />
         <Route
-          path="/meetingroom/:roomId"
+          path="/MeetingRoom/:roomId"
           element={user ? <MeetingRoom /> : <Navigate to="/login" />}
         />
       </Routes>

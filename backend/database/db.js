@@ -1,19 +1,15 @@
-import mongoose from "mongoose";
+import mysql from "mysql2";
+import dotenv from "dotenv";
 
-export const Connection = async (username, password) => {
-  const URL = `mongodb+srv://${username}:<${password}>@sayhello-gmc.nthve.mongodb.net/?retryWrites=true&w=majority&appName=SayHello-GMC`;
-  try {
-    await mongoose.connect(
-      URL
+dotenv.config();
 
-      //   {useUnifiedTopology: true,
-      //   useNewUrlParser: true,
-      // }
-    );
-    console.log("Database connected succesfully");
-  } catch (error) {
-    console.log("Error while connecting the database", error.message);
-  }
-};
+const pool = mysql.createPool({
+  host: process.env.DB_HOST,
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
+  database: process.env.DB_NAME,
+  port: process.env.DB_PORT,
+  connectionLimit: 10,
+});
 
-export default Connection;
+export default pool.promise();

@@ -3,7 +3,7 @@
     {
       "id": 1741604966234,
       "name": "John Doe",
-      "email": "jogn@example.com",
+      "email": "john@example.com",
       "password": "$2b$10$GvArV8qqrnRXMbsiX.9j7eZ182Guugq9X/s3BfGfCkidlD2n68JWW"
     },
     {
@@ -17,6 +17,24 @@
       "name": "Samuel",
       "email": "sam@example.com",
       "password": "$2b$10$p5l3HZ1ZefolVV71S55xSuY0.MeCHHAMksIA0reAfbCE2LwKd1AhK"
+    },
+    {
+      "id": 1743144503393,
+      "name": "Saamuel",
+      "email": "saam@example.com",
+      "password": "$2b$10$f6WFtf2ee3Ijsi9ftq4USeJnrIGUvtAE5ZMSkGg/eKrpI4ezySCOO"
+    },
+    {
+      "id": 1743153837088,
+      "name": "Fleek",
+      "email": "fleek@example.com",
+      "password": "$2b$10$IIe5cgvnlG9xroVQNqDs2ucBNurNNj7dMlMwhzXsnOkSfZwayefDa"
+    },
+    {
+      "id": 1743424430138,
+      "name": "Riruru",
+      "email": "riruru@example.com",
+      "password": "$2b$10$RDMAvpKSqPdCbKS2s3guXOYVSp21XUAGev1t0tnpsOdZ4ugZrsimy"
     }
   ]
 }
